@@ -1,5 +1,5 @@
 # Step 1: Use a temporary build image to download and extract the binary
-FROM debian:12-slim AS builder
+FROM dhi.io/debian-base:trixie-debian13-dev AS builder
 
 # Install curl, ca-certificates, tar, and binutils (for stripping binaries)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -42,7 +42,7 @@ RUN mkdir -p /staging/usr/local/bin \
 FROM dhi.io/alpine-base:3.24 AS alpine-base
 
 # Step 3: Combine and clean up symlinks to ensure the real glibc loader is used
-FROM debian:12-slim AS combiner
+FROM dhi.io/debian-base:trixie-debian13-dev AS combiner
 COPY --from=alpine-base / /rootfs/
 RUN rm -f /rootfs/lib/ld-linux-* /rootfs/lib64/ld-linux-*
 COPY --from=builder /staging/ /rootfs/
