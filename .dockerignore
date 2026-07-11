@@ -1,0 +1,18 @@
+# Git
+.git
+.github
+.gitignore
+
+# Docker configuration files
+.dockerignore
+docker-compose.yml
+
+# Documentation and License
+README.md
+LICENSE
+
+# Local environments and system files
+.DS_Store
+.env
+.env.*
+data/
