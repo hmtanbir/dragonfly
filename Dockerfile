@@ -1,8 +1,13 @@
 # Step 1: Use a temporary build image to download and extract the binary
-FROM alpine:3.24 AS builder
+FROM debian:12-slim AS builder
 
-# Install curl and tar to download/extract
-RUN apk add --no-cache curl tar
+# Install curl, ca-certificates, tar, and binutils (for stripping binaries)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    tar \
+    binutils \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set Dragonfly version to download
 ARG DRAGONFLY_VERSION=1.39.0
@@ -22,12 +27,29 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     && mv dragonfly-${ARCH} /dragonfly \
     && chmod +x /dragonfly
 
+# Copy Dragonfly binary and its exact dynamic glibc dependencies to a staging directory, and strip them to optimize size
+RUN mkdir -p /staging/usr/local/bin \
+    && cp /dragonfly /staging/usr/local/bin/dragonfly \
+    && strip --strip-unneeded /staging/usr/local/bin/dragonfly \
+    && for lib in $(ldd /dragonfly | grep -o '/[^ ]*'); do \
+         mkdir -p "/staging$(dirname "$lib")"; \
+         cp -L "$lib" "/staging$lib"; \
+         strip --strip-unneeded "/staging$lib" || true; \
+       done
 
-# Step 2: Move the executable into the hardened base image (which lacks package managers)
-FROM dhi.io/alpine-base:3.24
 
-# Copy binary from builder
-COPY --from=builder /dragonfly /usr/local/bin/dragonfly
+# Step 2: Extract the hardened Alpine base image
+FROM dhi.io/alpine-base:3.24 AS alpine-base
+
+# Step 3: Combine and clean up symlinks to ensure the real glibc loader is used
+FROM debian:12-slim AS combiner
+COPY --from=alpine-base / /rootfs/
+RUN rm -f /rootfs/lib/ld-linux-* /rootfs/lib64/ld-linux-*
+COPY --from=builder /staging/ /rootfs/
+
+# Step 4: Build the final hardened image from scratch
+FROM scratch
+COPY --from=combiner /rootfs/ /
 
 # Expose standard port and set entrypoint
 EXPOSE 6379
