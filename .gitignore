@@ -1,0 +1,11 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment variables & local secrets
+.env
+.env.local
+.env.*.local
+
+# Docker / Local Database volumes
+/data/

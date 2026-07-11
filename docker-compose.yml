@@ -1,0 +1,16 @@
+services:
+  dragonfly:
+    image: hmtanbir/dragonfly:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dragonfly
+    ports:
+      - "6379:6379"
+    volumes:
+      - dragonfly_data:/data
+    command: ["--logtostderr", "--dir=/data"]
+    restart: unless-stopped
+
+volumes:
+  dragonfly_data:
