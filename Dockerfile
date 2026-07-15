@@ -45,6 +45,10 @@ FROM dhi.io/alpine-base:3.24 AS alpine-base
 FROM dhi.io/debian-base:trixie-debian13-dev AS combiner
 COPY --from=alpine-base / /rootfs/
 RUN rm -f /rootfs/lib/ld-linux-* /rootfs/lib64/ld-linux-*
+
+# Remove shells from runtime stage to prevent execution
+RUN rm -f /rootfs/bin/sh /rootfs/bin/ash
+
 COPY --from=builder /staging/ /rootfs/
 
 # Step 4: Build the final hardened image from scratch
