@@ -10,7 +10,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     env:
       IMAGE_NAME: dragonfly
-      IMAGE_TAG: 1.39.0
+      IMAGE_TAG: 1.40.2
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
