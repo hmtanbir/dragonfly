@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Dragonfly version to download
-ARG DRAGONFLY_VERSION=1.40.1
+ARG DRAGONFLY_VERSION=1.40.2
 
 # Automatically populated by Buildx
 ARG TARGETARCH
